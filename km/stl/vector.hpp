@@ -2,7 +2,7 @@
 #include "stl_includes.h"
 #include "iterator.hpp"
 #include "type_traits.hpp"
-#include "new.hpp"
+#include "placement_new.hpp"
 
 namespace spd {
 	template <typename T>
@@ -75,7 +75,7 @@ namespace spd {
 		}
 #pragma endregion
 
-	protected:
+	private:
 		constexpr static const size_t INITIAL_CAPACITY = 8ull;
 		constexpr static const float GROWTH_FACTOR = 1.5f;
 
@@ -322,10 +322,6 @@ inline T& spd::Vector<T>::Back() const {
 
 template<typename T>
 inline bool spd::Vector<T>::Realloc(size_t newCapacity) {
-	if (!newCapacity) {
-		return false;
-	}
-
 	// allocate new data
 	T* newData = SPD_ALLOC(T, newCapacity);
 	if (!newData) {
@@ -445,9 +441,8 @@ inline void spd::Vector<T>::DestroyData(T* data, size_t size) {
 		return;
 	}
 
-	// iterate in reverse
-	for (size_t i = 0; i < size; i++) {
-		data[i].~T();
+	while (size) {
+		data[--size].~T();
 	}
 	LOG_T("destroyed %llu objects at 0x%p\n", size, data);
 }

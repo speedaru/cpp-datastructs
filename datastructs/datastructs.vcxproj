@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -46,7 +46,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -72,12 +72,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)build\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)include\;$(ProjectDir)src\;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)include\;$(ProjectDir)src\;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\km</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)lib\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)build\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)include\;$(ProjectDir)src\;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)include\;$(ProjectDir)src\;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\km</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)lib\</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -113,6 +113,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);PROJECT_DIR=R"($(ProjectDir))"</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,14 +137,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\stl\stl.cpp" />
+    <ClCompile Include="src\stl\kernel_globals.cpp" />
+    <ClCompile Include="src\stl\new.cpp" />
+    <ClCompile Include="src\stl\stl_km.cpp" />
+    <ClCompile Include="src\stl\stl_um.cpp" />
+    <ClCompile Include="src\unit_tests\map_unit_tests.cpp" />
+    <ClCompile Include="src\unit_tests\string_unit_tests.cpp" />
     <ClCompile Include="src\unit_tests\vector_unit_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\stl\hash.hpp" />
     <ClInclude Include="src\stl\iterator.hpp" />
+    <ClInclude Include="src\stl\new.hpp" />
     <ClInclude Include="src\stl\stl_includes.h" />
+    <ClInclude Include="src\stl\string.hpp" />
     <ClInclude Include="src\stl\string_view.hpp" />
+    <ClInclude Include="src\stl\types.hpp" />
+    <ClInclude Include="src\stl\type_traits.hpp" />
+    <ClInclude Include="src\stl\unordered_map.hpp" />
     <ClInclude Include="src\stl\vector.hpp" />
+    <ClInclude Include="src\unit_tests\map_unit_tests.hpp" />
+    <ClInclude Include="src\unit_tests\string_unit_tests.hpp" />
     <ClInclude Include="src\unit_tests\unit_tests.hpp" />
     <ClInclude Include="src\unit_tests\vector_unit_tests.hpp" />
   </ItemGroup>

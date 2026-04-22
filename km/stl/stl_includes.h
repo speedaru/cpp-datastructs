@@ -1,7 +1,7 @@
 #pragma once
 
-#define STL_UM
-//#define STL_KM
+//#define STL_UM
+#define STL_KM
 
 #ifdef STL_KM
 	#ifndef _AMD64_
@@ -150,4 +150,3 @@ namespace logging {
 	free(base);
 #endif
 }
-

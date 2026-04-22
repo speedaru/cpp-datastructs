@@ -1,5 +1,6 @@
 #pragma once
 #include <stl/stl_includes.h>
+#include <stl/types.hpp>
 
 namespace spd {
 	namespace unit_test {
