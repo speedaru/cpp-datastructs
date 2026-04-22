@@ -1,6 +1,8 @@
 #include "unit_tests/map_unit_tests.hpp"
 #include "unit_tests/unit_tests.hpp"
 #include "stl/unordered_map.hpp"
+#include "stl/string.hpp"
+#include "stl/hash_str.hpp"
 
 using spd::unit_test::TestClass;
 
@@ -69,7 +71,40 @@ void spd::unit_test::UnorderedMap() {
         map.Clear();
         SPD_ASSERT(!map.Contains(2));
         SPD_ASSERT(!map.Contains(5));
+
+        PRINT_SEPARATOR;
     } 
 
+    {
+        using K = spd::String<char>;
+        using V = TestClass;
+
+        spd::UnorderedMap<K, V> map;
+
+        spd::String str1("string1");
+        spd::String str2("string1");
+
+        size_t hash1 = Hash<K>()(str1);
+        size_t hash2 = Hash<K>()(str2);
+
+        LOG_D("hash for str1 : %.*s, 0x%llX\n", SPD_FMT_SV(str1.Str()), hash1);
+        LOG_D("hash for str2 : %.*s, 0x%llX\n", SPD_FMT_SV(str2.Str()), hash2);
+        SPD_ASSERT(hash1 == hash2);
+
+        spd::String str3("string3");
+        str2 = str3;
+        hash2 = Hash<K>()(str2);
+        LOG_D("new hash for str2 : %.*s, 0x%llX\n", SPD_FMT_SV(str1.Str()), hash2);
+        SPD_ASSERT(hash1 != hash2);
+
+        //TestClass t1(1);
+        //TestClass t2(2);
+
+        //map[str1] = t1;
+        //map[str2] = t2;
+        PRINT_SEPARATOR;
+    }
+
+	PRINT_SEPARATOR;
     LOG_I("Map destroyed. Check logs for balanced ALLOC/FREE and Destructor calls.\n");
 }

@@ -1,4 +1,7 @@
 #include "type_traits.hpp"
+#include "stl_includes.h"
+
+#ifdef STL_KM
 
 using int8_t = char;
 using int16_t = short;
@@ -15,6 +18,8 @@ using uint64_t = spd::conditional_t<
 	sizeof(long unsigned int) == 8,
 	long unsigned int,
 	long long unsigned int>;
+
+#endif
 
 using BYTE = uint8_t;
 using WORD = uint16_t;

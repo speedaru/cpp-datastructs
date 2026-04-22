@@ -14,7 +14,9 @@ namespace spd {
 		~Vector();
 
 		Vector(const Vector& other);
+		Vector& operator=(const Vector& other);
 		Vector(Vector&& other) noexcept;
+		Vector& operator=(Vector&& other) noexcept;
 #pragma endregion
 
 
@@ -43,6 +45,10 @@ namespace spd {
 		bool PopBack();
 
 		void Clear();
+
+		void CopyFrom(const Vector& other);
+
+		void MoveFrom(Vector&& other) noexcept;
 #pragma endregion
 
 
@@ -131,26 +137,28 @@ inline spd::Vector<T>::~Vector() {
 
 template<typename T>
 inline spd::Vector<T>::Vector(const Vector& other) {
-	Realloc(static_cast<size_t>(other.m_size * GROWTH_FACTOR));
-
-	while (m_size < other.m_size) {
-		new (m_data + m_size) T(other.m_data[m_size]);
-		m_size++;
-	}
-
+	CopyFrom(other);
 	LOG_D("copied %llu objects from vector at 0x%p into vector at 0x%p\n", m_size, other.m_data, m_data);
 }
 
 template<typename T>
+inline spd::Vector<T>& spd::Vector<T>::operator=(const Vector& other) {
+	CopyFrom(other);
+	LOG_D("copied %llu objects from vector at 0x%p into vector at 0x%p\n", m_size, other.m_data, m_data);
+	return *this;
+}
+
+template<typename T>
 inline spd::Vector<T>::Vector(Vector&& other) noexcept {
-	m_size = other.m_size;
-	other.m_size = 0ull;
+	MoveFrom(spd::move(other));
+	LOG_D("moved %llu objects into new vector at 0x%p\n", m_size, m_data);
+}
 
-	m_capacity = other.m_capacity;
-	other.m_capacity = 0ull;
-
-	m_data = other.m_data;
-	other.m_data = nullptr;
+template<typename T>
+inline spd::Vector<T>& spd::Vector<T>::operator=(Vector&& other) noexcept {
+	MoveFrom(spd::move(other));
+	LOG_D("moved %llu objects into new vector at 0x%p\n", m_size, m_data);
+	return *this;
 }
 
 #pragma endregion
@@ -296,6 +304,29 @@ template<typename T>
 inline void spd::Vector<T>::Clear() {
 	DestroyData(m_data, m_size);
 	m_size = 0;
+}
+
+template<typename T>
+inline void spd::Vector<T>::CopyFrom(const Vector& other) {
+	Realloc(other.m_size);
+
+	m_size = 0;
+	while (m_size < other.m_size) {
+		new (m_data + m_size) T(other.m_data[m_size]);
+		m_size++;
+	}
+}
+
+template<typename T>
+inline void spd::Vector<T>::MoveFrom(Vector&& other) noexcept {
+	m_size = other.m_size;
+	other.m_size = 0ull;
+
+	m_capacity = other.m_capacity;
+	other.m_capacity = 0ull;
+
+	m_data = other.m_data;
+	other.m_data = nullptr;
 }
 
 #pragma endregion

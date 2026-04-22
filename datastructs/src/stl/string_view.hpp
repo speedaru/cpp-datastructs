@@ -1,35 +1,38 @@
 #pragma once
-#include "common.h"
 #include "iterator.hpp"
 
+// format string view
+#define SPD_FMT_SV(str_view) str_view.GetLength(), str_view.GetData()
 
 namespace spd {
 	template <typename CH>
 	class StringView {
 	public:
+#pragma region constructors
 		StringView();
 		StringView(const CH* buff, size_t length);
 		StringView(const spd::const_iterator<CH>& start, const spd::const_iterator<CH>& end);
 		StringView(const CH* cstr);
+#pragma endregion
 
-		// non null terminated cstr
-		const CH* GetData() const;
-		size_t GetLength() const;
-
+#pragma region api
 		// dangling pointer to null terminated cstr
 		const CH* c_str() const;
+#pragma endregion
 
-		CH operator[](int idx) const {
-			return m_data[idx];
-		}
+#pragma region getters
+		// non null terminated cstr
+		inline const CH* GetData() const { return m_data; }
+		inline size_t GetLength() const { return m_length; }
+#pragma endregion
 
+#pragma region operators
+		CH operator[](int idx) const { return m_data[idx]; }
+
+		// cast operator
 		template <typename T>
-		operator StringView<T>() {
-			// new type is same size or divisible by len
-			assert(m_length % sizeof(T) == 0);
-			size_t newLen = m_length / sizeof(T);
-			return StringView(reinterpret_cast<const T*>(m_data), newLen);
-		}
+		operator StringView<T>() const;
+#pragma endregion
 
 	private:
 		const CH* m_data;
@@ -39,6 +42,8 @@ namespace spd {
 
 
 // IMPL
+
+#pragma region constructors
 
 template<typename CH>
 inline spd::StringView<CH>::StringView() : m_data(nullptr), m_length(0ull) { }
@@ -64,16 +69,10 @@ inline spd::StringView<CH>::StringView(const CH* cstr) : m_data(cstr) {
 	}
 }
 
+#pragma endregion
 
-template<typename CH>
-inline const CH* spd::StringView<CH>::GetData() const {
-	return m_data;
-}
 
-template<typename CH>
-inline size_t spd::StringView<CH>::GetLength() const {
-	return m_length;
-}
+#pragma region api
 
 template<typename CH>
 inline const CH* spd::StringView<CH>::c_str() const {
@@ -85,3 +84,19 @@ inline const CH* spd::StringView<CH>::c_str() const {
 	// return dangling pointer to cstr
 	return buff;
 }
+
+#pragma endregion
+
+
+#pragma region operators
+
+template<typename CH>
+template <typename T>
+inline spd::StringView<CH>::operator StringView<T>() const {
+	// new type is same size or divisible by len
+	assert(m_length % sizeof(T) == 0);
+	size_t newLen = m_length / sizeof(T);
+	return StringView(reinterpret_cast<const T*>(m_data), newLen);
+}
+
+#pragma endregion

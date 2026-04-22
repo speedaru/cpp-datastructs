@@ -132,12 +132,14 @@
     <ClCompile Include="stl\new.cpp" />
     <ClCompile Include="stl\stl_km.cpp" />
     <ClCompile Include="unit_tests\map_unit_tests.cpp" />
+    <ClCompile Include="unit_tests\string_unit_tests.cpp" />
     <ClCompile Include="unit_tests\vector_unit_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stl\hash.hpp" />
     <ClInclude Include="stl\iterator.hpp" />
     <ClInclude Include="stl\new.hpp" />
+    <ClInclude Include="stl\string.hpp" />
     <ClInclude Include="stl\types.hpp" />
     <ClInclude Include="stl\stl_includes.h" />
     <ClInclude Include="stl\string_view.hpp" />
@@ -145,6 +147,7 @@
     <ClInclude Include="stl\unordered_map.hpp" />
     <ClInclude Include="stl\vector.hpp" />
     <ClInclude Include="unit_tests\map_unit_tests.hpp" />
+    <ClInclude Include="unit_tests\string_unit_tests.hpp" />
     <ClInclude Include="unit_tests\unit_tests.hpp" />
     <ClInclude Include="unit_tests\vector_unit_tests.hpp" />
   </ItemGroup>

@@ -1,6 +1,8 @@
 #include "unit_tests/map_unit_tests.hpp"
 #include "unit_tests/unit_tests.hpp"
 #include "stl/unordered_map.hpp"
+#include "stl/string.hpp"
+#include "stl/hash_str.hpp"
 
 using spd::unit_test::TestClass;
 
@@ -10,29 +12,9 @@ using spd::unit_test::TestClass;
 
 #define PRINT_SEPARATOR logging::LogOutputRaw("--------------------------------------------------\n\n")
 
-struct MyStruct {
-	size_t data1;
-	const char* myStr;
-};
-
-template <>
-struct ::spd::Hash<MyStruct> {
-    size_t operator()(MyStruct data) {
-        size_t hashes[] = {
-            Hash<decltype(data.data1)>()(data.data1),
-            Hash<decltype(data.myStr)>()(data.myStr)
-        };
-
-        return hash::FNV1a(hashes, sizeof(hashes));
-    }
-};
-
 void spd::unit_test::UnorderedMap() {
 	using K = int;
     using V = TestClass;
-
-    using K2 = const char*;
-    using V2 = TestClass;
 
     LOG_I("-------------------- UNORDERED MAP TEST --------------------\n");
 
@@ -56,8 +38,7 @@ void spd::unit_test::UnorderedMap() {
 
         // 2. Test operator[] (Access and Default Insertion)
         LOG_I("Testing operator[]...\n");
-        V& ref = map[1]; 
-        UNREFERENCED_PARAMETER(ref);
+        LOG_D("nonexisting key (1), value : %hhu\n", map[1].m_data);
         map[5] = V(); // Key 5, Bucket 1 (Collision with Key 1!)
 
         PRINT_SEPARATOR;
@@ -95,47 +76,35 @@ void spd::unit_test::UnorderedMap() {
     } 
 
     {
-        spd::UnorderedMap<K2, V2> map;
+        using K2 = spd::String<char>;
+        using V2 = TestClass;
 
-        LOG_I("testing map with string keys\n");
-        map.Set("sn1", TestClass(5));
-        map.Set("sn2", TestClass(32));
-        SPD_ASSERT(map["sn1"].m_data == 5);
-        SPD_ASSERT(map["sn2"].m_data == 32);
+        spd::UnorderedMap<K, V> map;
 
-        LOG_D("map[sn1] : %hhu\n", map["sn1"].m_data);
-        LOG_D("map[sn2] : %hhu\n", map["sn2"].m_data);
-        LOG_D("map[sn3] : %hhu\n", map["sn3"].m_data);
+        spd::String str1("string1");
+        spd::String str2("string1");
 
+        size_t hash1 = Hash<K2>()(str1);
+        size_t hash2 = Hash<K2>()(str2);
+
+        LOG_D("hash for str1 : %.*s, 0x%llX\n", SPD_FMT_SV(str1.Str()), hash1);
+        LOG_D("hash for str2 : %.*s, 0x%llX\n", SPD_FMT_SV(str2.Str()), hash2);
+        SPD_ASSERT(hash1 == hash2);
+
+        spd::String str3("string3");
+        str2 = str3;
+        hash2 = Hash<K2>()(str2);
+        LOG_D("new hash for str2 : %.*s, 0x%llX\n", SPD_FMT_SV(str1.Str()), hash2);
+        SPD_ASSERT(hash1 != hash2);
+
+        //TestClass t1(1);
+        //TestClass t2(2);
+
+        //map[str1] = t1;
+        //map[str2] = t2;
         PRINT_SEPARATOR;
     }
 
-    {
-        spd::UnorderedMap<GUID, GUID> map;
-
-        GUID og1 = { 0x11223344, 0x5566, 0x7788, { 0x99, 0xAA, 0xBB, 0xCC, 0xCC, 0xDD, 0xEE, 0xFF } };
-        GUID spoofed1 = { 0xDEEADDBB, 0xEEEE, 0xFFFF, { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88 } };
-
-        map[og1] = spoofed1;
-
-        MyStruct mystruct1{
-            .data1 = 0x22,
-            .myStr = "nigger"
-        };
-        MyStruct mystruct2{
-            .data1 = 0x22,
-            .myStr = "nigger"
-        };
-        size_t hashMystruct1 = Hash<MyStruct>()(mystruct1);
-        size_t hashMystruct2 = Hash<MyStruct>()(mystruct2);
-        LOG_D("hash mystruct1 : 0x%llX\n", hashMystruct1);
-        LOG_D("hash mystruct2 : 0x%llX\n", hashMystruct2);
-        SPD_ASSERT(hashMystruct1 == hashMystruct2);
-
-        const GUID& g = map[og1];
-        LOG_D("map[og1] : %lX-%hX-%hX-%02X%02X%02X%02X%02X%02X%02X%02X\n",
-            g.Data1, g.Data2, g.Data3, g.Data4[0], g.Data4[1], g.Data4[2], g.Data4[3], g.Data4[4], g.Data4[5], g.Data4[6], g.Data4[7]);
-    }
-
+	PRINT_SEPARATOR;
     LOG_I("Map destroyed. Check logs for balanced ALLOC/FREE and Destructor calls.\n");
 }

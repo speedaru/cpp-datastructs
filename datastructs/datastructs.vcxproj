@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\stl\hash.hpp" />
+    <ClInclude Include="src\stl\hash_str.hpp" />
     <ClInclude Include="src\stl\iterator.hpp" />
     <ClInclude Include="src\stl\new.hpp" />
     <ClInclude Include="src\stl\stl_includes.h" />

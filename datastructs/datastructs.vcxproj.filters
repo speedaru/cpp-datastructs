@@ -83,5 +83,8 @@
     <ClInclude Include="src\unit_tests\string_unit_tests.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\stl\hash_str.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
