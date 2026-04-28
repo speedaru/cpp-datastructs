@@ -11,7 +11,6 @@ void logging::LoggerInit(const char* filename) {
 }
 
 void logging::LoggerShutdown() {
-
 }
 
 void logging::LogOutputRawV(const char* fmt, va_list args) {
@@ -34,28 +33,53 @@ void logging::LogOutputRaw(const char* fmt, ...) {
 }
 
 void logging::LogOutput(LogLevel level, const char* file, int line, const char* func, const char* fmt, ...) {
-    const char* level_strings[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR"};
+    const char* level_strings[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR" };
     
-	// get kernel system time
-    LARGE_INTEGER systemTime;
-    LARGE_INTEGER localTime;
-    TIME_FIELDS timeFields;
+    // time
+    if constexpr (LOG_TIME) {
+		// get kernel system time
+		LARGE_INTEGER systemTime;
+		LARGE_INTEGER localTime;
+		TIME_FIELDS timeFields;
 
-    KeQuerySystemTimePrecise(&systemTime); 
-    ExSystemTimeToLocalTime(&systemTime, &localTime);
-    RtlTimeToTimeFields(&localTime, &timeFields);
+		KeQuerySystemTimePrecise(&systemTime); 
+		ExSystemTimeToLocalTime(&systemTime, &localTime);
+		RtlTimeToTimeFields(&localTime, &timeFields);
 
-    // format header manually
-	char header[256];
-    RtlStringCchPrintfA(
-        header, sizeof(header),
-        "[%02u:%02u:%02u] [%s] [%s:%d in %s]: ",
-        timeFields.Hour, timeFields.Minute, timeFields.Second,
-        level_strings[level], file, line, func
-    );
+        LogOutputRaw("[%02u:%02u:%02u] ", timeFields.Hour, timeFields.Minute, timeFields.Second);
+    }
 
-    LogOutputRaw(header);
+    // log debug level indicator
+    LogOutputRaw("[%s]", level_strings[level]);
 
+    // filename, line number, function
+    if constexpr (LOG_FILENAME || LOG_FUNCTION) {
+        if constexpr (LOG_FILENAME && LOG_FUNCTION) // filename, line number and function
+            LogOutputRaw(" [%s:%d in %s]", file, line, func);
+        else if constexpr (!LOG_FILENAME && LOG_FUNCTION) // only function
+            LogOutputRaw(" [in %s]", func);
+        else if constexpr (LOG_FILENAME && !LOG_FUNCTION) // only filename and line number
+            LogOutputRaw(" [%s:%d]", file, line);
+    }
+
+    // indent levels
+    char spacesBuff[128]{ 0 };
+    char* it = spacesBuff;
+
+	*it++ = ' '; // 1 initial space after headers
+    if (level == LOG_INFO || level == LOG_WARN) {
+        *it++ = ' '; // add 1 extra space since only 4 chars instead of 5 for IFNO and WARN
+    }
+
+	const char* end = it + (g_IndentLevel * SPACES_PER_INDENT); // indent level * spaces per indent
+    SPD_ASSERT(end < spacesBuff + sizeof(spacesBuff));
+    while (it < end) {
+		*it++ = ' ';
+	}
+
+    LogOutputRaw(spacesBuff);
+
+    // actual message
     va_list args;
     va_start(args, fmt);
     LogOutputRawV(fmt, args);

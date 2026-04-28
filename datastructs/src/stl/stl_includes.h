@@ -63,13 +63,13 @@ namespace spd {
 
 
 namespace logging {
-	typedef enum {
+	enum LogLevel {
 		LOG_TRACE,
 		LOG_DEBUG,
 		LOG_INFO,
 		LOG_WARN,
 		LOG_ERROR
-	} LogLevel;
+	};
 
 	// initialize logger (opens the file)
 	void LoggerInit(const char* filename);
@@ -82,12 +82,43 @@ namespace logging {
 
 	constexpr bool LOG_TO_FILE = true;
 	constexpr bool LOG_TO_CONSOLE = true;
+	constexpr bool LOG_TIME = false; // date time
+	constexpr bool LOG_FILENAME = false; // filename and line number
+	constexpr bool LOG_FUNCTION = false; // function
+
+	constexpr int SPACES_PER_INDENT = 2; // spaces per indentation level
+	inline int g_IndentLevel = 0; // Use thread-local if in multi-threaded user mode
 
 	#define LOG_T(...) LogOutput(logging::LOG_TRACE, __RELATIVE_FILE__, __LINE__, __func__, __VA_ARGS__)
 	#define LOG_D(...) LogOutput(logging::LOG_DEBUG, __RELATIVE_FILE__, __LINE__, __func__, __VA_ARGS__)
 	#define LOG_I(...) LogOutput(logging::LOG_INFO,  __RELATIVE_FILE__, __LINE__, __func__, __VA_ARGS__)
 	#define LOG_W(...) LogOutput(logging::LOG_WARN,  __RELATIVE_FILE__, __LINE__, __func__, __VA_ARGS__)
 	#define LOG_E(...) LogOutput(logging::LOG_ERROR, __RELATIVE_FILE__, __LINE__, __func__, __VA_ARGS__)
+
+	#define LOG_OBJ(level, fmt, ...) LogOutput(level, __RELATIVE_FILE__, __LINE__, __func__, \
+										"[%s:0x%p] " fmt, this->m_tag, this, ##__VA_ARGS__)
+	#define LOG_OBJ_D(fmt, ...) LOG_OBJ(logging::LOG_DEBUG, fmt, ##__VA_ARGS__)
+	#define LOG_OBJ_T(fmt, ...) LOG_OBJ(logging::LOG_DEBUG, fmt, ##__VA_ARGS__)
+
+	struct ScopedLog {
+		ScopedLog(const char* func) {
+			LOG_I(">> %s\n", func);
+			g_IndentLevel++;
+		}
+		~ScopedLog() {
+			g_IndentLevel--;
+			LOG_I("<<\n");
+		}
+	};
+
+	#define LOG_SCOPE() logging::ScopedLog _scope(__func__)
+
+	// should always add at the end to not mess up access modifiers
+	#define ADD_CLASS_TAG				\
+	protected:							\
+		const char* m_tag = "Unnamed";	\
+	public:								\
+		void SetTag(const char* tag) { m_tag = tag; }
 }
 
 
@@ -120,7 +151,7 @@ namespace logging {
 
 	T* ptr = reinterpret_cast<T*>(base + 1);
 	
-	LOG_D("ALLOC: 0x%p [%zu bytes] for %zu elements at %s:%d (allocated: %zu)\n",
+	LOG_D("[+] ALLOC: 0x%p [%zu bytes] for %zu elements at %s:%d (allocated: %zu)\n",
 		ptr, size, count, file, line, GetBytesAllocated());
 
 	return ptr;
@@ -141,7 +172,7 @@ namespace logging {
 	size_t size = base->size;
 	g_totalFreed += size;
 
-	logging::LOG_D("FREE: 0x%p [%zu bytes] at %s:%d (allocated: %zu)\n",
+	logging::LOG_D("[-] FREE: 0x%p [%zu bytes] at %s:%d (allocated: %zu)\n",
 		ptr, size, file, line, GetBytesAllocated());
 
 #ifdef STL_KM
@@ -150,4 +181,3 @@ namespace logging {
 	free(base);
 #endif
 }
-

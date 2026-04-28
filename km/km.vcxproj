@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stl\hash.hpp" />
+    <ClInclude Include="stl\hash_str.hpp" />
     <ClInclude Include="stl\iterator.hpp" />
     <ClInclude Include="stl\new.hpp" />
     <ClInclude Include="stl\string.hpp" />
@@ -150,6 +151,9 @@
     <ClInclude Include="unit_tests\string_unit_tests.hpp" />
     <ClInclude Include="unit_tests\unit_tests.hpp" />
     <ClInclude Include="unit_tests\vector_unit_tests.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

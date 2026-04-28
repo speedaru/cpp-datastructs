@@ -1,3 +1,4 @@
+#pragma once
 #include "type_traits.hpp"
 #include "stl_includes.h"
 
@@ -21,7 +22,17 @@ using uint64_t = spd::conditional_t<
 
 #endif
 
+#ifndef _MINWINDEF_
+
 using BYTE = uint8_t;
 using WORD = uint16_t;
 using DWORD = uint32_t;
+
+#endif
+
 using QWORD = uint64_t;
+
+struct OWORD {
+	QWORD low;
+	QWORD high;
+};

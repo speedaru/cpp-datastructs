@@ -105,6 +105,7 @@ namespace spd {
 		size_t m_size{};
 		size_t m_capacity{};
 		T* m_data{ nullptr };
+	ADD_CLASS_TAG
 	};
 }
 
@@ -114,50 +115,57 @@ namespace spd {
 
 template<typename T>
 inline spd::Vector<T>::Vector() {
+	LOG_SCOPE();
 	Realloc(INITIAL_CAPACITY);
-	LOG_T("created vector at 0x%p, initial capacity: %llu\n", m_data, m_capacity);
+	LOG_OBJ_T("created vector at 0x%p, initial capacity: %llu\n", m_data, m_capacity);
 }
 
 template<typename T>
 inline spd::Vector<T>::Vector(size_t capacity) {
+	LOG_SCOPE();
 	Realloc(capacity);
-	LOG_T("created vector at 0x%p, initial capacity: %llu\n", m_data, m_capacity);
+	LOG_OBJ_T("created vector at 0x%p, initial capacity: %llu\n", m_data, m_capacity);
 }
 
 template<typename T>
 inline spd::Vector<T>::~Vector() {
+	LOG_SCOPE();
 	DestroyData(m_data, m_size);
-	LOG_D("destroyed vector data\n");
+	LOG_OBJ_D("destroyed vector data\n");
 
 	if (m_data) {
 		SPD_FREE(m_data);
 	}
-	LOG_D("freed vector\n");
+	LOG_OBJ_D("freed vector\n");
 }
 
 template<typename T>
 inline spd::Vector<T>::Vector(const Vector& other) {
+	LOG_SCOPE();
 	CopyFrom(other);
-	LOG_D("copied %llu objects from vector at 0x%p into vector at 0x%p\n", m_size, other.m_data, m_data);
+	LOG_OBJ_D("copied %llu objects from vector at 0x%p into vector at 0x%p\n", m_size, other.m_data, m_data);
 }
 
 template<typename T>
 inline spd::Vector<T>& spd::Vector<T>::operator=(const Vector& other) {
+	LOG_SCOPE();
 	CopyFrom(other);
-	LOG_D("copied %llu objects from vector at 0x%p into vector at 0x%p\n", m_size, other.m_data, m_data);
+	LOG_OBJ_D("copied %llu objects from vector at 0x%p into vector at 0x%p\n", m_size, other.m_data, m_data);
 	return *this;
 }
 
 template<typename T>
 inline spd::Vector<T>::Vector(Vector&& other) noexcept {
+	LOG_SCOPE();
 	MoveFrom(spd::move(other));
-	LOG_D("moved %llu objects into new vector at 0x%p\n", m_size, m_data);
+	LOG_OBJ_D("moved %llu objects into new vector at 0x%p\n", m_size, m_data);
 }
 
 template<typename T>
 inline spd::Vector<T>& spd::Vector<T>::operator=(Vector&& other) noexcept {
+	LOG_SCOPE();
 	MoveFrom(spd::move(other));
-	LOG_D("moved %llu objects into new vector at 0x%p\n", m_size, m_data);
+	LOG_OBJ_D("moved %llu objects into new vector at 0x%p\n", m_size, m_data);
 	return *this;
 }
 
@@ -168,6 +176,7 @@ inline spd::Vector<T>& spd::Vector<T>::operator=(Vector&& other) noexcept {
 
 template<typename T>
 inline bool spd::Vector<T>::Reserve(size_t newCapacity) {
+	LOG_SCOPE();
 	if (newCapacity > m_capacity) {
 		return Realloc(newCapacity);
 	}
@@ -179,6 +188,7 @@ inline bool spd::Vector<T>::Reserve(size_t newCapacity) {
 
 template<typename T>
 inline bool spd::Vector<T>::Resize(size_t newSize) {
+	LOG_SCOPE();
 	bool res{ true };
 
 	// case 1: new size is smaller than old size
@@ -201,7 +211,7 @@ inline bool spd::Vector<T>::Resize(size_t newSize) {
 		}
 	}
 
-	LOG_D("resized vector to %llu\n", newSize);
+	LOG_OBJ_D("resized vector to %llu\n", newSize);
 	return res;
 }
 
@@ -218,6 +228,7 @@ inline bool spd::Vector<T>::ShrinkToFit() {
 template<typename T>
 template<typename Ref>
 inline T& spd::Vector<T>::Insert(size_t idx, Ref&& element) {
+	LOG_SCOPE();
 	// ensure not inserting past last element
 	SPD_ASSERT(idx <= m_size);
 
@@ -231,10 +242,10 @@ inline T& spd::Vector<T>::Insert(size_t idx, Ref&& element) {
 	}
 
 	if constexpr (!spd::is_lvalue_ref_v<Ref>) {
-		LOG_D("inserting element (move) into vector at idx %llu\n", idx);
+		LOG_OBJ_D("inserting element (move) into vector at idx %llu\n", idx);
 	}
 	else {
-		LOG_D("inserting element (copy) into vector at idx %llu\n", idx);
+		LOG_OBJ_D("inserting element (copy) into vector at idx %llu\n", idx);
 	}
 	return *res;
 }
@@ -242,15 +253,16 @@ inline T& spd::Vector<T>::Insert(size_t idx, Ref&& element) {
 template<typename T>
 template<typename Ref>
 inline T& spd::Vector<T>::PushBack(Ref&& element) {
+	LOG_SCOPE();
 	GrowIfNeeded();
 
 	T* slot = m_data + m_size++;
 	new (slot) T(spd::forward<Ref>(element));
 	if constexpr (spd::is_rvalue_ref_v<Ref>) {
-		LOG_D("pushed back element (move)\n");
+		LOG_OBJ_D("pushed back element (move)\n");
 	}
 	else {
-		LOG_D("pushed back element (copy)\n");
+		LOG_OBJ_D("pushed back element (copy)\n");
 	}
 
 	return *slot;
@@ -259,20 +271,22 @@ inline T& spd::Vector<T>::PushBack(Ref&& element) {
 template<typename T>
 template<typename ...Args>
 inline T& spd::Vector<T>::Emplace(size_t idx, Args&&... args) {
+	LOG_SCOPE();
 	SPD_ASSERT(idx <= m_size);
 
-	LOG_D("emplacing element at %llu\n", idx);
+	LOG_OBJ_D("emplacing element at %llu\n", idx);
 	return InsertImpl(idx, spd::forward<Args>(args)...);
 }
 
 template<typename T>
 template<typename ...Args>
 inline T& spd::Vector<T>::EmplaceBack(Args&&... args) {
+	LOG_SCOPE();
 	GrowIfNeeded();
 
 	T* slot = m_data + m_size;
 	new (slot) T(spd::forward<Args>(args)...);
-	LOG_D("emplaced back element\n");
+	LOG_OBJ_D("emplaced back element\n");
 
 	m_size++;
 	return *slot;
@@ -280,15 +294,16 @@ inline T& spd::Vector<T>::EmplaceBack(Args&&... args) {
 
 template<typename T>
 inline bool spd::Vector<T>::RemoveAt(size_t idx) {
+	LOG_SCOPE();
 	if (idx >= m_size) {
 		LOG_E("trying to remove element at %llu in vector but size is: %llu\n", idx, m_size);
 		return false;
 	}
 
 	MoveElementsLeftIfNeeded(idx);
-	LOG_D("shifted %llu elements left for remove at\n", m_size - idx);
+	LOG_OBJ_D("shifted %llu elements left for remove at\n", m_size - idx);
 
-	LOG_D("removed element at %llu from vector\n", idx);
+	LOG_OBJ_D("removed element at %llu from vector\n", idx);
 	m_size--;
 
 	return true;
@@ -296,18 +311,21 @@ inline bool spd::Vector<T>::RemoveAt(size_t idx) {
 
 template<typename T>
 inline bool spd::Vector<T>::PopBack() {
+	LOG_SCOPE();
 	SPD_ASSERT(m_size > 0); // can't pop back when vector has 0 elements
 	return RemoveAt(m_size - 1);
 }
 
 template<typename T>
 inline void spd::Vector<T>::Clear() {
+	LOG_SCOPE();
 	DestroyData(m_data, m_size);
 	m_size = 0;
 }
 
 template<typename T>
 inline void spd::Vector<T>::CopyFrom(const Vector& other) {
+	LOG_SCOPE();
 	Realloc(other.m_size);
 
 	m_size = 0;
@@ -319,6 +337,12 @@ inline void spd::Vector<T>::CopyFrom(const Vector& other) {
 
 template<typename T>
 inline void spd::Vector<T>::MoveFrom(Vector&& other) noexcept {
+	LOG_SCOPE();
+	if (m_data) {
+		DestroyData(m_data, m_size);
+		SPD_FREE(m_data);
+	}
+
 	m_size = other.m_size;
 	other.m_size = 0ull;
 
@@ -353,6 +377,7 @@ inline T& spd::Vector<T>::Back() const {
 
 template<typename T>
 inline bool spd::Vector<T>::Realloc(size_t newCapacity) {
+	LOG_SCOPE();
 	if (!newCapacity) {
 		return false;
 	}
@@ -383,19 +408,21 @@ inline bool spd::Vector<T>::Realloc(size_t newCapacity) {
 
 	m_data = newData;
 	m_capacity = newCapacity;
-	LOG_T("resized vector capacity to %llu\n", m_capacity);
+	LOG_OBJ_T("resized vector capacity to %llu\n", m_capacity);
 
 	return true;
 }
 
 template<typename T>
 inline bool spd::Vector<T>::Realloc() {
+	LOG_SCOPE();
 	return Realloc(static_cast<size_t>(m_capacity * GROWTH_FACTOR));
 }
 
 template<typename T>
 template<typename ...Args>
 inline T& spd::Vector<T>::InsertImpl(size_t idx, Args && ...args) {
+	LOG_SCOPE();
 	// ensure not inserting past last element
 	SPD_ASSERT(idx <= m_size);
 
@@ -412,6 +439,7 @@ inline T& spd::Vector<T>::InsertImpl(size_t idx, Args && ...args) {
 
 template<typename T>
 inline void spd::Vector<T>::GrowIfNeeded() {
+	LOG_SCOPE();
 	// if data full realloc
 	if (m_size >= m_capacity) {
 		Realloc();
@@ -470,6 +498,7 @@ inline void spd::Vector<T>::MoveElementsRightIfNeeded(size_t idx) {
 
 template<typename T>
 inline void spd::Vector<T>::DestroyData(T* data, size_t size) {
+	LOG_SCOPE();
 	// nothing to destroy
 	if (!size) {
 		LOG_W("trying to destroy data, but size is 0\n");
@@ -480,7 +509,7 @@ inline void spd::Vector<T>::DestroyData(T* data, size_t size) {
 	for (size_t i = 0; i < size; i++) {
 		data[i].~T();
 	}
-	LOG_T("destroyed %llu objects at 0x%p\n", size, data);
+	LOG_OBJ_T("destroyed %llu objects at 0x%p\n", size, data);
 }
 
 #pragma endregion

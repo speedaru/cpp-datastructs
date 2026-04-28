@@ -51,4 +51,18 @@ void spd::unit_test::String() {
 		PRINT_SEPARATOR;
 		LOG_D("cleanup :\n");
 	}
+
+	PRINT_SEPARATOR;
+
+	{
+		LOG_D("constructing str1\n");
+		spd::String str1("my first string");
+
+		LOG_D("constructing str2\n");
+		spd::String str2("second string");
+
+		LOG_D("constructing str3\n");
+		spd::String str3 = str1;
+		str3.Concat(str2);
+	}
 }

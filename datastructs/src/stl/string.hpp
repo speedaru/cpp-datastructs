@@ -9,14 +9,27 @@ namespace spd {
 	public:
 #pragma region constructors
 		String() : Vector<CH>() { }
-		String(const CH* cstr);
 		String(size_t capacity) : Vector<CH>(capacity) { }
+
+		String(const String& other) : Vector<CH>::Vector(other) { }
+		String(String&& other) noexcept : Vector<CH>::Vector(spd::move(other)) { }
+
+		String& operator=(const String& other) {
+			Vector<CH>::operator=(other);
+			return *this;
+		}
+
+		String& operator=(String&& other) noexcept {
+			Vector<CH>::operator=(spd::move(other));
+			return *this;
+		}
+
+		String(const CH* cstr);
+		String(const spd::StringView<CH>& view);
 #pragma endregion
 
 #pragma region data_manipulation
 		void Concat(const String& other);
-
-		void CopyFrom(const String& other);
 #pragma endregion
 
 #pragma region data_access
@@ -26,8 +39,13 @@ namespace spd {
 #pragma region operators
 		String& operator+=(const String& other);
 		String operator+(const String& other);
+
+		bool operator==(const String& other) const;
 #pragma endregion
+	ADD_CLASS_TAG
 	};
+
+	using StringA = typename String<char>;
 }
 
 
@@ -37,6 +55,7 @@ namespace spd {
 
 template <typename CH>
 inline spd::String<CH>::String(const CH* cstr) : Vector<CH>(0) {
+	LOG_SCOPE();
 	if (!cstr) return;
 
 	// calc string len
@@ -51,7 +70,23 @@ inline spd::String<CH>::String(const CH* cstr) : Vector<CH>(0) {
 	}
 
 	this->m_size = len;
-	LOG_D("created string from cstring, len %llu\n", this->m_size);
+	LOG_OBJ_D("created string: %.*s from cstring, len %llu\n", this->m_size, this->m_data, this->m_size);
+}
+
+template<typename CH>
+inline spd::String<CH>::String(const spd::StringView<CH>& view) : Vector<CH>(0) {
+	LOG_SCOPE();
+	if (!view.GetLength()) return;
+
+	this->Reserve(view.GetLength());
+
+	// copy data
+	for (size_t i = 0; i < view.GetLength(); i++) {
+		this->m_data[i] = view[(int)i];
+	}
+
+	this->m_size = view.GetLength();
+	LOG_OBJ_D("created string: %.*s from cstring, len %llu\n", this->m_size, this->m_data, this->m_size);
 }
 
 #pragma endregion
@@ -91,14 +126,14 @@ inline spd::StringView<CH> spd::String<CH>::Str() const {
 
 template<typename CH>
 inline spd::String<CH>& spd::String<CH>::operator+=(const String& other) {
-	LOG_T("string += operator (returns REFRENCE)\n");
+	LOG_OBJ_T("string += operator (returns REFRENCE)\n");
 	Concat(other);
 	return *this;
 }
 
 template<typename CH>
 inline spd::String<CH> spd::String<CH>::operator+(const String& other) {
-	LOG_T("string + operator (returns COPY)\n");
+	LOG_OBJ_T("string + operator (returns COPY)\n");
 
 	// create new string with required size by this string and other string
 	size_t requiredSize = this->Size() + other.Size() + sizeof(CH);
@@ -110,4 +145,33 @@ inline spd::String<CH> spd::String<CH>::operator+(const String& other) {
 	return res;
 }
 
+template<typename CH>
+inline bool spd::String<CH>::operator==(const String& other) const {
+	if (!this->m_size || !other.m_size
+		|| !this->m_capacity || !other.m_capacity
+		|| !this->m_data || !other.m_data)
+	{
+		return false;
+	}
+
+	// first compare string lengths
+	if (this->m_size != other.m_size) {
+		return false;
+	}
+
+	// if same len, compare string buffers
+	const CH* thisData = this->m_data;
+	const CH* otherData = other.m_data;
+	size_t len = this->m_size;
+	for (size_t i = 0; i < len; i++) {
+		if (thisData[i] != otherData[i]) {
+			return false;
+		}
+	}
+
+	// same len and same data
+	return true;
+}
+
 #pragma endregion
+

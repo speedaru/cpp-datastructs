@@ -15,13 +15,13 @@ namespace spd {
 			: key(k), value(v), cachedHash(hash), next(nullptr) {}
 
 		~MapNode() {
-			key.~K();
-			value.~V();
+			//key.~K();
+			//value.~V();
 		} 
 	};
 
 	template <typename K, typename V, typename HashFn = spd::Hash<K>>
-	class UnorderedMap {
+	class UnorderedMap { 
 	public:
 		using Node = MapNode<K, V>;
 		using Bucket = Node*; // linked list, ptr to first node
@@ -66,6 +66,7 @@ namespace spd {
 		Bucket* m_buckets;
 		size_t m_size{ 0 }; // num of elements
 		size_t m_bucketCount;
+	ADD_CLASS_TAG
 	};
 }
 
@@ -78,20 +79,22 @@ template <typename K, typename V, typename HashFn>
 inline spd::UnorderedMap<K, V, HashFn>::UnorderedMap(size_t bucketCount)
 	: m_bucketCount(bucketCount)
 {
+	LOG_SCOPE();
 	m_buckets = SPD_ALLOC(Bucket, m_bucketCount);
 	for (size_t i = 0; i < m_bucketCount; i++) {
 		m_buckets[i] = nullptr;
 	}
 
-	LOG_T("created map with %llu buckets\n", m_bucketCount);
+	LOG_OBJ_T("created map with %llu buckets\n", m_bucketCount);
 }
 
 template<typename K, typename V, typename HashFn>
 inline spd::UnorderedMap<K, V, HashFn>::~UnorderedMap() {
+	LOG_SCOPE();
 	Clear();
 	SPD_FREE(m_buckets);
 
-	LOG_T("destroyed map (%llu buckets)\n", m_bucketCount);
+	LOG_OBJ_T("destroyed map (%llu buckets)\n", m_bucketCount);
 }
 
 #pragma endregion // constructors
@@ -128,6 +131,7 @@ inline const V* spd::UnorderedMap<K, V, HashFn>::Get(const K& key) const {
 
 template<typename K, typename V, typename HashFn>
 inline void spd::UnorderedMap<K, V, HashFn>::Set(const K& key, const V& val) {
+	LOG_SCOPE();
 	size_t hash = HashFn()(key);
 	size_t bucketIdx = hash % m_bucketCount;
 
@@ -146,7 +150,7 @@ inline void spd::UnorderedMap<K, V, HashFn>::Set(const K& key, const V& val) {
 	::new (newNode) Node(key, val, hash);
 	InsertNewNode(bucketIdx, newNode);
 
-	LOG_D("inserted new key into bucket %llu. map size: %llu\n", bucketIdx, m_size);
+	LOG_OBJ_D("inserted new key into bucket %llu. map size: %llu\n", bucketIdx, m_size);
 }
 
 template<typename K, typename V, typename HashFn>
@@ -203,6 +207,7 @@ inline void spd::UnorderedMap<K, V, HashFn>::Clear() {
 
 template<typename K, typename V, typename HashFn>
 inline V& spd::UnorderedMap<K, V, HashFn>::operator[](const K& key) {
+	LOG_SCOPE();
 	size_t hash = HashFn()(key);
 	size_t bucketIdx = hash % m_bucketCount;
 
@@ -219,7 +224,7 @@ inline V& spd::UnorderedMap<K, V, HashFn>::operator[](const K& key) {
 	new (newNode) Node(key, V(), hash);
 	InsertNewNode(bucketIdx, newNode);
 
-	LOG_D("key not found, created a new default node : 0x%p\n", newNode);
+	LOG_OBJ_D("key not found, created a new default node : 0x%p\n", newNode);
 	return newNode->value;
 }
 

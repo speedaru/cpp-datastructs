@@ -53,7 +53,7 @@ inline spd::StringView<CH>::StringView(const CH* buff, size_t length) : m_data(b
 
 template<typename CH>
 inline spd::StringView<CH>::StringView(const spd::const_iterator<CH>& start, const spd::const_iterator<CH>& end) {
-	assert(end >= start);
+	SPD_ASSERT(end >= start);
 	size_t length = end - start;
 	m_data = start;
 	m_length = length;
@@ -61,10 +61,7 @@ inline spd::StringView<CH>::StringView(const spd::const_iterator<CH>& start, con
 
 template<typename CH>
 inline spd::StringView<CH>::StringView(const CH* cstr) : m_data(cstr) {
-	const CH* it = cstr;
-	
-	// basicly strlen
-	while (*it++ != '\0') {
+	while (*cstr++) { // get strlen
 		++m_length;
 	}
 }
