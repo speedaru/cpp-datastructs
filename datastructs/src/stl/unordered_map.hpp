@@ -26,8 +26,11 @@ namespace spd {
 		using Node = MapNode<K, V>;
 		using Bucket = Node*; // linked list, ptr to first node
 
+		static constexpr const size_t DEFAULT_BUCKETS = 16;
+		static constexpr const char* DEFAULT_TAG = "Unnamed UnorderedMap";
+
 #pragma region constructors
-		UnorderedMap(size_t bucketCount = 16);
+		UnorderedMap(size_t bucketCount = DEFAULT_BUCKETS, const char* tag = DEFAULT_TAG);
 
 		~UnorderedMap();
 #pragma endregion // constructors
@@ -76,8 +79,8 @@ namespace spd {
 #pragma region constructors
 
 template <typename K, typename V, typename HashFn>
-inline spd::UnorderedMap<K, V, HashFn>::UnorderedMap(size_t bucketCount)
-	: m_bucketCount(bucketCount)
+inline spd::UnorderedMap<K, V, HashFn>::UnorderedMap(size_t bucketCount, const char* tag)
+	: m_bucketCount(bucketCount), m_tag(tag)
 {
 	LOG_SCOPE();
 	m_buckets = SPD_ALLOC(Bucket, m_bucketCount);

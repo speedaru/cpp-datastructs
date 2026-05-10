@@ -20,7 +20,7 @@ void spd::unit_test::UnorderedMap() {
 
     {
         // Initialize with a small bucket count to force collisions
-        spd::UnorderedMap<K, V> map(2); 
+        spd::UnorderedMap<K, V> map(2, "main map");
 
         // 1. Test Insertion
         LOG_I("Testing Insertion...\n");
@@ -81,8 +81,8 @@ void spd::unit_test::UnorderedMap() {
 
         spd::UnorderedMap<K, V> map;
 
-        spd::String str1("string1");
-        spd::String str2("string1");
+        spd::StringA str1("string1", "str1");
+        spd::StringA str2("string1", "str2");
 
         size_t hash1 = Hash<K>()(str1);
         size_t hash2 = Hash<K>()(str2);
@@ -91,7 +91,7 @@ void spd::unit_test::UnorderedMap() {
         LOG_D("hash for str2 : %.*s, 0x%llX\n", SPD_FMT_SV(str2.Str()), hash2);
         SPD_ASSERT(hash1 == hash2);
 
-        spd::String str3("string3");
+        spd::String str3("string3", "str3");
         str2 = str3;
         hash2 = Hash<K>()(str2);
         LOG_D("new hash for str2 : %.*s, 0x%llX\n", SPD_FMT_SV(str1.Str()), hash2);

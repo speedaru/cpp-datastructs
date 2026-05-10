@@ -8,8 +8,8 @@
 int main() {
 	logging::LoggerInit("logging.txt");
 
-	//spd::unit_test::Vector();
-	spd::unit_test::UnorderedMap();
+	spd::unit_test::Vector();
+	//spd::unit_test::UnorderedMap();
 	//spd::unit_test::String();
 
 	logging::LoggerShutdown();

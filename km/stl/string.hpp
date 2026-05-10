@@ -7,9 +7,11 @@ namespace spd {
 	template <typename CH>
 	class String : public Vector<CH> {
 	public:
+		static constexpr const char* DEFAULT_TAG = "Unnamed String";
+
 #pragma region constructors
-		String() : Vector<CH>() { }
-		String(size_t capacity) : Vector<CH>(capacity) { }
+		//String(const char* tag = DEFAULT_TAG) : Vector<CH>(tag) { }
+		String(size_t capacity) : Vector<CH>(capacity, DEFAULT_TAG) { }
 
 		String(const String& other) : Vector<CH>::Vector(other) { }
 		String(String&& other) noexcept : Vector<CH>::Vector(spd::move(other)) { }
@@ -24,8 +26,8 @@ namespace spd {
 			return *this;
 		}
 
-		String(const CH* cstr);
-		String(const spd::StringView<CH>& view);
+		String(const CH* cstr, const char* tag = DEFAULT_TAG);
+		String(const spd::StringView<CH>& view, const char* tag = DEFAULT_TAG);
 #pragma endregion
 
 #pragma region data_manipulation
@@ -54,7 +56,7 @@ namespace spd {
 #pragma region constructors
 
 template <typename CH>
-inline spd::String<CH>::String(const CH* cstr) : Vector<CH>(0) {
+inline spd::String<CH>::String(const CH* cstr, const char* tag) : Vector<CH>(0, tag) {
 	LOG_SCOPE();
 	if (!cstr) return;
 
@@ -74,7 +76,7 @@ inline spd::String<CH>::String(const CH* cstr) : Vector<CH>(0) {
 }
 
 template<typename CH>
-inline spd::String<CH>::String(const spd::StringView<CH>& view) : Vector<CH>(0) {
+inline spd::String<CH>::String(const spd::StringView<CH>& view, const char* tag) : Vector<CH>(0, tag) {
 	LOG_SCOPE();
 	if (!view.GetLength()) return;
 

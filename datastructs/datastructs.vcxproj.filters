@@ -39,6 +39,9 @@
     <ClCompile Include="src\unit_tests\string_unit_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\stl\hash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\stl\iterator.hpp">

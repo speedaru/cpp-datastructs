@@ -3,14 +3,17 @@
 #include "iterator.hpp"
 #include "type_traits.hpp"
 #include "new.hpp"
+#include "types.hpp"
 
 namespace spd {
 	template <typename T>
 	class Vector {
 	public:
+		static constexpr const char* DEFAULT_TAG = "Unnamed Vector";
+
 #pragma region constructors
-		Vector();
-		Vector(size_t capacity);
+		Vector(const char* tag = DEFAULT_TAG);
+		Vector(size_t capacity, const char* tag = DEFAULT_TAG);
 		~Vector();
 
 		Vector(const Vector& other);
@@ -39,6 +42,10 @@ namespace spd {
 
 		template<typename... Args>
 		T& EmplaceBack(Args&&... args);
+
+		void InsertRange(size_t idx, const T* data, size_t size);
+
+		void PushBackRange(const T* data, size_t size);
 
 		bool RemoveAt(size_t idx);
 
@@ -94,7 +101,7 @@ namespace spd {
 		void GrowIfNeeded();
 
 		void MoveElementsLeftIfNeeded(size_t start);
-		void MoveElementsRightIfNeeded(size_t start);
+		void MoveElementsRightIfNeeded(size_t start, size_t amount);
 
 		// calls destructor for each data
 		void DestroyData(T* data, size_t size);
@@ -114,14 +121,14 @@ namespace spd {
 #pragma region constructors
 
 template<typename T>
-inline spd::Vector<T>::Vector() {
+inline spd::Vector<T>::Vector(const char* tag) : m_tag(tag) {
 	LOG_SCOPE();
 	Realloc(INITIAL_CAPACITY);
 	LOG_OBJ_T("created vector at 0x%p, initial capacity: %llu\n", m_data, m_capacity);
 }
 
 template<typename T>
-inline spd::Vector<T>::Vector(size_t capacity) {
+inline spd::Vector<T>::Vector(size_t capacity, const char* tag) : m_tag(tag) {
 	LOG_SCOPE();
 	Realloc(capacity);
 	LOG_OBJ_T("created vector at 0x%p, initial capacity: %llu\n", m_data, m_capacity);
@@ -293,6 +300,38 @@ inline T& spd::Vector<T>::EmplaceBack(Args&&... args) {
 }
 
 template<typename T>
+inline void spd::Vector<T>::InsertRange(size_t idx, const T* data, size_t size) {
+	LOG_SCOPE();
+	if (!size) {
+		return;
+	}
+
+	// ensure not inserting past last element
+	SPD_ASSERT(idx <= m_size);
+
+	// check if we need to grow vector for new range
+	size_t newSize = m_size + size;
+	if (newSize >= m_capacity) {
+		Realloc(newSize);
+	}
+
+	// make space for new data
+	MoveElementsRightIfNeeded(idx, size);
+
+	// copy new data into empty range
+	for (size_t i = 0; i < size; i++) {
+		m_data[idx + i] = data[i];
+	}
+
+	m_size += size;
+}
+
+template<typename T>
+inline void spd::Vector<T>::PushBackRange(const T* data, size_t size) {
+	InsertRange(m_size, data, size);
+}
+
+template<typename T>
 inline bool spd::Vector<T>::RemoveAt(size_t idx) {
 	LOG_SCOPE();
 	if (idx >= m_size) {
@@ -328,6 +367,8 @@ inline void spd::Vector<T>::CopyFrom(const Vector& other) {
 	LOG_SCOPE();
 	Realloc(other.m_size);
 
+	m_tag = other.m_tag;
+
 	m_size = 0;
 	while (m_size < other.m_size) {
 		new (m_data + m_size) T(other.m_data[m_size]);
@@ -342,6 +383,8 @@ inline void spd::Vector<T>::MoveFrom(Vector&& other) noexcept {
 		DestroyData(m_data, m_size);
 		SPD_FREE(m_data);
 	}
+
+	m_tag = other.m_tag;
 
 	m_size = other.m_size;
 	other.m_size = 0ull;
@@ -427,7 +470,7 @@ inline T& spd::Vector<T>::InsertImpl(size_t idx, Args && ...args) {
 	SPD_ASSERT(idx <= m_size);
 
 	GrowIfNeeded();
-	MoveElementsRightIfNeeded(idx);
+	MoveElementsRightIfNeeded(idx, 1);
 
 	// construct in hole
 	T* slot = m_data + idx;
@@ -475,25 +518,35 @@ inline void spd::Vector<T>::MoveElementsLeftIfNeeded(size_t start) {
 }
 
 template<typename T>
-inline void spd::Vector<T>::MoveElementsRightIfNeeded(size_t idx) {
+inline void spd::Vector<T>::MoveElementsRightIfNeeded(size_t idx, size_t amount) {
 	// nothing to shift
-	if (idx == m_size) {
+	if (idx == m_size || !amount) {
 		return;
 	}
 
 	SPD_ASSERT(idx < m_size); // ensure not oob
-	SPD_ASSERT(m_size + 1 <= m_capacity); // ensure enough space
+	SPD_ASSERT(m_size + amount <= m_capacity); // ensure enough space
 
-	// move construct last element into new space
-	new (m_data + m_size) T(spd::move_if_noexcept(m_data[m_size - 1]));
+	T* lastSlot = m_data + m_size - 1;
+	spd::iterator<T> readSlot(lastSlot);
+	spd::iterator<T> writeSlot(lastSlot + amount);
 
-	// shift backward
-	for (size_t i = m_size - 1; i > idx; i--) {
-		m_data[i] = spd::move_if_noexcept(m_data[i - 1]);
+	// move elements into empty slots
+	for (spd::iterator<T> end(lastSlot - amount); readSlot > end; readSlot--) {
+		new (writeSlot.Get()) T(spd::move_if_noexcept(*readSlot));
+		writeSlot--;
 	}
 
-	// destory duplicated element at idx
-	m_data[idx].~T();
+	// now move elements into existing slots
+	for (spd::iterator<T> end(m_data + idx - 1); readSlot > end; readSlot--) {
+		*writeSlot = spd::move_if_noexcept(*readSlot);
+		writeSlot--;
+	}
+
+	// destory left over elements that were moved
+	for (spd::iterator<T> end(m_data + idx - 1); writeSlot > end; writeSlot--) {
+		writeSlot.Get()->~T();
+	}
 }
 
 template<typename T>

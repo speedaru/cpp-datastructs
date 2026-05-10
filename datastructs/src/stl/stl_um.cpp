@@ -56,27 +56,48 @@ void logging::LogOutputRaw(const char* fmt, ...) {
 }
 
 void logging::LogOutput(LogLevel level, const char* file, int line, const char* func, const char* fmt, ...) {
-    if (!logFile) return;
-
-    const char* level_strings[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR"};
+    const char* level_strings[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR" };
     
-    // Get current time
-    time_t now = time(NULL);
-    tm t{};
+    // time
+    if constexpr (LOG_TIME) {
+		time_t now = time(NULL);
+		tm t{};
+		localtime_s(&t, &now);
 
-    localtime_s(&t, &now);
-    
-    // Print Header: [TIME] [LEVEL] [FILE:LINE in FUNC]
-    std::string header = std::format(
-        "[{:02}:{:02}:{:02}] [{}] [{}:{} in {}]: ",
-        t.tm_hour, t.tm_min, t.tm_sec,
-        level_strings[level], file, line, func
-    );
+        LogOutputRaw("[%02u:%02u:%02u] ", t.tm_hour, t.tm_min, t.tm_sec);
+    }
 
-    // log header
-    LogOutputRaw(header.c_str());
+    // log debug level indicator
+    LogOutputRaw("[%s]", level_strings[level]);
 
-    // log fmt
+    // filename, line number, function
+    if constexpr (LOG_FILENAME || LOG_FUNCTION) {
+        if constexpr (LOG_FILENAME && LOG_FUNCTION) // filename, line number and function
+            LogOutputRaw(" [%s:%d in %s]", file, line, func);
+        else if constexpr (!LOG_FILENAME && LOG_FUNCTION) // only function
+            LogOutputRaw(" [in %s]", func);
+        else if constexpr (LOG_FILENAME && !LOG_FUNCTION) // only filename and line number
+            LogOutputRaw(" [%s:%d]", file, line);
+    }
+
+    // indent levels
+    char spacesBuff[128]{ 0 };
+    char* it = spacesBuff;
+
+	*it++ = ' '; // 1 initial space after headers
+    if (level == LOG_INFO || level == LOG_WARN) {
+        *it++ = ' '; // add 1 extra space since only 4 chars instead of 5 for IFNO and WARN
+    }
+
+	const char* end = it + (g_IndentLevel * SPACES_PER_INDENT); // indent level * spaces per indent
+    SPD_ASSERT(end < spacesBuff + sizeof(spacesBuff));
+    while (it < end) {
+		*it++ = ' ';
+	}
+
+    LogOutputRaw(spacesBuff);
+
+    // actual message
     va_list args;
     va_start(args, fmt);
     LogOutputRawV(fmt, args);

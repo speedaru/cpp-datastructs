@@ -137,6 +137,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\stl\hash.cpp" />
     <ClCompile Include="src\stl\kernel_globals.cpp" />
     <ClCompile Include="src\stl\new.cpp" />
     <ClCompile Include="src\stl\stl_km.cpp" />

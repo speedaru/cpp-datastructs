@@ -24,9 +24,9 @@ using uint64_t = spd::conditional_t<
 
 #ifndef _MINWINDEF_
 
-using BYTE = uint8_t;
-using WORD = uint16_t;
-using DWORD = uint32_t;
+typedef unsigned long BYTE;
+typedef unsigned short WORD;
+typedef unsigned long DWORD;
 
 #endif
 

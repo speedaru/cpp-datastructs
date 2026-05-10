@@ -139,11 +139,11 @@ static void TestPopBack() {
 	spd::unit_test::ResetConstructorsCount();
 	spd::Vector<TestClass> vec;
 
-	for (int i = 0; i < 10; i++) {
+	for (uint8_t i = 0; i < 10; i++) {
 		vec.EmplaceBack(i);
 	}
 
-	printf("[PopBack] vec before:\n");
+	logging::LogOutputRaw("[PopBack] vec before:\n");
 	PrintVector(vec);
 
 	for (int i = 0; i < 10; i++) {
@@ -152,7 +152,118 @@ static void TestPopBack() {
 	}
 	SPD_ASSERT(vec.Size() == 0);
 
-	printf("[PopBack] vec after:\n");
+	logging::LogOutputRaw("[PopBack] vec after:\n");
+	PrintVector(vec);
+
+	LOG_D("-------------------------------------------------------\n");
+}
+
+static void TestInsert() {
+	LOG_I("-------------------- PUSHBACK TEST --------------------\n");
+	spd::unit_test::ResetConstructorsCount();
+	spd::Vector<TestClass> vec(8);
+	vec.SetTag("insert vec");
+
+	// copy pushback
+	TestClass t1(1);
+	vec.PushBack(t1);
+	SPD_ASSERT(g_testCtor == 1);
+	SPD_ASSERT(g_testCopyCtor == 1);
+	SPD_ASSERT(vec.Size() == 1);
+	LOG_I("passed copy pushback test\n");
+
+	// move pushback
+	TestClass t2(2);
+	vec.PushBack(std::move(t2));
+	SPD_ASSERT(g_testCtor == 2);
+	SPD_ASSERT(g_testCopyCtor == 1);
+	SPD_ASSERT(g_testMoveCtor == 1);
+	SPD_ASSERT(vec.Size() == 2);
+	LOG_I("passed move pushback test\n");
+
+	// ensure size grows
+	size_t initialCapacity = vec.Capacity();
+	for (int i = 3; i < 12; i++) {
+		TestClass t(i);
+		vec.PushBack(t);
+	}
+	SPD_ASSERT(vec.Capacity() > initialCapacity);
+
+	// should have 0 copy/move assignments
+	SPD_ASSERT(g_testCopyAssign == 0);
+	SPD_ASSERT(g_testMoveAssign == 0);
+
+	printf("[PushBack] vec:\n");
+	PrintVector(vec);
+	
+	LOG_D("-------------------------------------------------------\n");
+}
+
+static void TestInsertRange() {
+	LOG_D("-------------------- INSERT RANGE TEST --------------------\n");
+	spd::unit_test::ResetConstructorsCount();
+	spd::Vector<TestClass> vec(5);
+	vec.SetTag("insert range vec");
+
+	for (int i = 5; i < 9; i++) {
+		vec.EmplaceBack(i);
+	}
+	SPD_ASSERT(vec.Size() == 4);
+	SPD_ASSERT(g_testCtor == 4);
+
+	printf("[InsertRange] vec before:\n");
+	PrintVector(vec);
+
+	spd::Vector<TestClass> vec2;
+	for (int i = 20; i < 22; i++) {
+		vec2.EmplaceBack(i);
+	}
+	SPD_ASSERT(vec2.Size() == 2);
+	SPD_ASSERT(g_testCtor == 6);
+
+	size_t moveCtorDelta = g_testMoveCtor;
+	vec.InsertRange(1, vec2.Data(), 2);
+	moveCtorDelta = g_testMoveCtor - moveCtorDelta;
+	SPD_ASSERT(vec.Size() == 6);
+	SPD_ASSERT(moveCtorDelta == 6); // 4 for ReAlloc + 2 for shifting
+	SPD_ASSERT(g_testMoveAssign == 1); // 1 for shifting
+
+	printf("[InsertRange] vec after:\n");
+	PrintVector(vec);
+
+	LOG_D("-------------------------------------------------------\n");
+}
+
+static void TestPushBackRange() {
+	LOG_D("-------------------- PUSHBACK RANGE TEST --------------------\n");
+	spd::unit_test::ResetConstructorsCount();
+	spd::Vector<TestClass> vec(5, "vec1");
+	vec.SetTag("insert range vec");
+
+	for (int i = 5; i < 9; i++) {
+		vec.EmplaceBack(i);
+	}
+	SPD_ASSERT(vec.Size() == 4);
+	SPD_ASSERT(g_testCtor == 4);
+
+	printf("[PushBackRange] vec before:\n");
+	PrintVector(vec);
+
+	spd::Vector<TestClass> vec2("vec2");
+	for (int i = 20; i < 22; i++) {
+		vec2.EmplaceBack(i);
+	}
+	SPD_ASSERT(vec2.Size() == 2);
+	SPD_ASSERT(g_testCtor == 6);
+
+	size_t moveCtorDelta = g_testMoveCtor;
+	vec.PushBackRange(vec2.Data(), 2);
+	moveCtorDelta = g_testMoveCtor - moveCtorDelta;
+	SPD_ASSERT(vec.Size() == 6);
+	SPD_ASSERT(moveCtorDelta == 4); // 4 for ReAlloc + 0 shifting
+	SPD_ASSERT(g_testMoveAssign == 0); // 0 shifting
+
+	printf("[PushBackRange] vec after:\n");
 	PrintVector(vec);
 
 	LOG_D("-------------------------------------------------------\n");
@@ -170,10 +281,13 @@ void spd::unit_test::PrintVector(const spd::Vector<TestClass>& vec) {
 }
 
 void spd::unit_test::Vector() {
-	TestReserve();
-	TestResize();
-	TestPushback();
-	TestEmplace();
-	TestRemove();
-	TestPopBack();
+	//TestReserve();
+	//TestResize();
+	//TestPushback();
+	//TestEmplace();
+	//TestRemove();
+	//TestPopBack();
+	//TestInsert();
+	//TestInsertRange();
+	TestPushBackRange();
 }

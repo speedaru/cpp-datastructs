@@ -1,4 +1,5 @@
 #pragma once
+#include "stl_includes.h"
 #include "iterator.hpp"
 
 // format string view
@@ -24,6 +25,12 @@ namespace spd {
 		// non null terminated cstr
 		inline const CH* GetData() const { return m_data; }
 		inline size_t GetLength() const { return m_length; }
+
+		inline spd::iterator<CH> begin() { return spd::iterator<CH>(m_data); }
+		inline spd::iterator<CH> end() { return spd::iterator<CH>(m_data + m_length); }
+
+		inline spd::const_iterator<CH> begin() const { return spd::const_iterator<CH>(m_data); }
+		inline spd::const_iterator<CH> end() const { return spd::const_iterator<CH>(m_data + m_length); }
 #pragma endregion
 
 #pragma region operators
@@ -38,6 +45,8 @@ namespace spd {
 		const CH* m_data;
 		size_t m_length;
 	};
+
+	using StringViewA = typename StringView<char>;
 }
 
 
@@ -60,7 +69,7 @@ inline spd::StringView<CH>::StringView(const spd::const_iterator<CH>& start, con
 }
 
 template<typename CH>
-inline spd::StringView<CH>::StringView(const CH* cstr) : m_data(cstr) {
+inline spd::StringView<CH>::StringView(const CH* cstr) : m_data(cstr), m_length(0ull) {
 	while (*cstr++) { // get strlen
 		++m_length;
 	}
@@ -88,10 +97,10 @@ inline const CH* spd::StringView<CH>::c_str() const {
 #pragma region operators
 
 template<typename CH>
-template <typename T>
+template<typename T>
 inline spd::StringView<CH>::operator StringView<T>() const {
 	// new type is same size or divisible by len
-	assert(m_length % sizeof(T) == 0);
+	SPD_ASSERT(m_length % sizeof(T) == 0);
 	size_t newLen = m_length / sizeof(T);
 	return StringView(reinterpret_cast<const T*>(m_data), newLen);
 }

@@ -44,6 +44,19 @@ namespace spd {
 			return tmp;
 		}
 
+		// --it
+		iterator& operator--() {
+			--m_ptr;
+			return *this;
+		}
+
+		// it--
+		iterator operator--(int) {
+			iterator tmp = *this;
+			--(*this);
+			return tmp;
+		}
+
 		bool operator==(const iterator& b) {
 			return m_ptr == b.m_ptr;
 		}
