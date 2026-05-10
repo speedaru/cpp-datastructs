@@ -11,7 +11,7 @@ namespace spd {
 		inline size_t g_testMoveAssign = 0;	// move assign count
 
 		struct TestClass {
-			uint8_t m_data{};
+			uint32_t m_data{};
 
 			TestClass() : m_data(0) {
 				LOG_D("default constructor\n");

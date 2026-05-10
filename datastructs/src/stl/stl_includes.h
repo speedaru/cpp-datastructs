@@ -9,7 +9,10 @@
     #endif
 	#define NOMINMAX
 
-	#include <ntddk.h>
+	#undef min
+	#undef max
+
+	#include <ntifs.h>
 	
 	#define SPD_ASSERT(cond) ASSERT(cond)
 	#define SPD_POOL_TAG 'Spdl'

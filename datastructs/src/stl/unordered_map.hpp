@@ -11,8 +11,9 @@ namespace spd {
 		size_t cachedHash;
 		MapNode* next;
 
-		MapNode(const K& k, const V& v, size_t hash)
-			: key(k), value(v), cachedHash(hash), next(nullptr) {}
+		template <typename U>
+		MapNode(const K& k, U&& v, size_t hash)
+			: key(k), value(spd::forward<U>(v)), cachedHash(hash), next(nullptr) {}
 
 		~MapNode() {
 			//key.~K();
@@ -33,14 +34,24 @@ namespace spd {
 		UnorderedMap(size_t bucketCount = DEFAULT_BUCKETS, const char* tag = DEFAULT_TAG);
 
 		~UnorderedMap();
+
+		UnorderedMap(const UnorderedMap& other);
+		void operator=(const UnorderedMap& other);
+
+		UnorderedMap(UnorderedMap&& other);
+		void operator=(UnorderedMap&& other);
 #pragma endregion // constructors
 
 
 #pragma region api
+		size_t Size() const	{ return m_size; }
+		size_t BucketCount() const { return m_bucketCount; }
+
 		bool Contains(const K& key) const;
 
 		const V* Get(const K& key) const;
-		void Set(const K& key, const V& val);
+		template <typename U>
+		void Set(const K& key, U&& val); // val can be an rvalue
 
 		void DeleteKey(const K& key);
 
@@ -54,12 +65,18 @@ namespace spd {
 
 	private:
 #pragma region private_fn
+		void CopyImpl(const UnorderedMap& other);
+		void MoveImpl(UnorderedMap&& other);
+
 		// get bucket index
 		auto GetBucket(const K& key) const -> Bucket;
 
 		void InsertNewNode(size_t bucketIdx, Node* newNode);
 
 		void Rehash(size_t newBucketCount);
+
+		// destroys existing buckets and resets members
+		void Destroy();
 #pragma endregion // private_fn
 
 	private:
@@ -94,10 +111,29 @@ inline spd::UnorderedMap<K, V, HashFn>::UnorderedMap(size_t bucketCount, const c
 template<typename K, typename V, typename HashFn>
 inline spd::UnorderedMap<K, V, HashFn>::~UnorderedMap() {
 	LOG_SCOPE();
-	Clear();
-	SPD_FREE(m_buckets);
+	Destroy();
 
 	LOG_OBJ_T("destroyed map (%llu buckets)\n", m_bucketCount);
+}
+
+template<typename K, typename V, typename HashFn>
+inline spd::UnorderedMap<K, V, HashFn>::UnorderedMap(const UnorderedMap& other) {
+	CopyImpl(other);
+}
+
+template<typename K, typename V, typename HashFn>
+inline void spd::UnorderedMap<K, V, HashFn>::operator=(const UnorderedMap& other) {
+	CopyImpl(other);
+}
+
+template<typename K, typename V, typename HashFn>
+inline spd::UnorderedMap<K, V, HashFn>::UnorderedMap(UnorderedMap&& other) {
+	MoveImpl(spd::forward<UnorderedMap>(other));
+}
+
+template<typename K, typename V, typename HashFn>
+inline void spd::UnorderedMap<K, V, HashFn>::operator=(UnorderedMap&& other) {
+	MoveImpl(spd::forward<UnorderedMap>(other));
 }
 
 #pragma endregion // constructors
@@ -133,7 +169,8 @@ inline const V* spd::UnorderedMap<K, V, HashFn>::Get(const K& key) const {
 }
 
 template<typename K, typename V, typename HashFn>
-inline void spd::UnorderedMap<K, V, HashFn>::Set(const K& key, const V& val) {
+template<typename U>
+inline void spd::UnorderedMap<K, V, HashFn>::Set(const K& key, U&& val) {
 	LOG_SCOPE();
 	size_t hash = HashFn()(key);
 	size_t bucketIdx = hash % m_bucketCount;
@@ -142,7 +179,7 @@ inline void spd::UnorderedMap<K, V, HashFn>::Set(const K& key, const V& val) {
 	Node* current = m_buckets[bucketIdx];
 	while (current) {
 		if (current->key == key) {
-			current->value = val;
+			current->value = spd::forward<U>(val);
 			return; // finished
 		}
 		current = current->next;
@@ -150,7 +187,7 @@ inline void spd::UnorderedMap<K, V, HashFn>::Set(const K& key, const V& val) {
 
 	// key doesn't exist, create new node
 	Node* newNode = SPD_ALLOC(Node, 1);
-	::new (newNode) Node(key, val, hash);
+	::new (newNode) Node(key, spd::forward<U>(val), hash);
 	InsertNewNode(bucketIdx, newNode);
 
 	LOG_OBJ_D("inserted new key into bucket %llu. map size: %llu\n", bucketIdx, m_size);
@@ -237,6 +274,55 @@ inline V& spd::UnorderedMap<K, V, HashFn>::operator[](const K& key) {
 #pragma region private_fn
 
 template<typename K, typename V, typename HashFn>
+inline void spd::UnorderedMap<K, V, HashFn>::CopyImpl(const UnorderedMap& other) {
+	LOG_SCOPE();
+	Destroy(); // clear existing
+
+	m_tag = other.m_tag;
+
+	// copy bucket count and exit if empty
+	size_t newBucketCount = other.m_bucketCount;
+	if (!newBucketCount) {
+		return;
+	}
+
+	Rehash(newBucketCount);
+
+	// copy buckets, iterate each bucket
+	for (size_t bucketIdx = 0; bucketIdx < m_bucketCount; bucketIdx++) {
+		// iterate each node
+		for (const Node* currentNode = other.m_buckets[bucketIdx]; currentNode != nullptr; currentNode = currentNode->next) {
+			// key doesn't exist, create new node
+			Node* newNode = SPD_ALLOC(Node, 1);
+			::new (newNode) Node(currentNode->key, currentNode->value, currentNode->cachedHash);
+			InsertNewNode(bucketIdx, newNode);
+		}
+	}
+
+	m_size = other.m_size;
+}
+
+template<typename K, typename V, typename HashFn>
+inline void spd::UnorderedMap<K, V, HashFn>::MoveImpl(UnorderedMap&& other) {
+	LOG_SCOPE();
+	Destroy(); // clear existing
+
+	m_tag = other.m_tag;
+	other.m_tag = "deleted UnorderedMap";
+
+	m_buckets = other.m_buckets;
+	other.m_buckets = nullptr;
+
+	m_bucketCount = other.m_bucketCount;
+	other.m_bucketCount = 0;
+
+	m_size = other.m_size;
+	other.m_size = 0;
+
+	LOG_OBJ_D("moved '%s'\n", m_tag);
+}
+
+template<typename K, typename V, typename HashFn>
 inline auto spd::UnorderedMap<K, V, HashFn>::GetBucket(const K& key) const -> Bucket {
 	size_t hash = HashFn()(key);
 	return m_buckets[hash % m_bucketCount];
@@ -255,6 +341,7 @@ inline void spd::UnorderedMap<K, V, HashFn>::InsertNewNode(size_t bucketIdx, Nod
 
 template<typename K, typename V, typename HashFn>
 inline void spd::UnorderedMap<K, V, HashFn>::Rehash(size_t newBucketCount) {
+	LOG_SCOPE();
 	LOG_I("rehashing map %llu to %llu buckets\n", m_bucketCount, newBucketCount);
 
 	Bucket* newBuckets = SPD_ALLOC(Bucket, newBucketCount);
@@ -290,6 +377,17 @@ inline void spd::UnorderedMap<K, V, HashFn>::Rehash(size_t newBucketCount) {
 	SPD_FREE(m_buckets);
 	m_buckets = newBuckets;
 	m_bucketCount = newBucketCount;
+}
+
+template<typename K, typename V, typename HashFn>
+inline void spd::UnorderedMap<K, V, HashFn>::Destroy() {
+	if (m_buckets && m_bucketCount) {
+		Clear();
+		SPD_FREE(m_buckets);
+
+		m_buckets = nullptr;
+		m_bucketCount = 0;
+	}
 }
 
 #pragma endregion
