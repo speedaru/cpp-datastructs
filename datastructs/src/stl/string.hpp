@@ -10,8 +10,8 @@ namespace spd {
 		static constexpr const char* DEFAULT_TAG = "Unnamed String";
 
 #pragma region constructors
-		//String(const char* tag = DEFAULT_TAG) : Vector<CH>(tag) { }
-		String(size_t capacity) : Vector<CH>(capacity, DEFAULT_TAG) { }
+		String(const char* tag = DEFAULT_TAG) : Vector<CH>(tag) { }
+		String(size_t capacity, const char* tag = DEFAULT_TAG) : Vector<CH>(capacity, tag) { }
 
 		String(const String& other) : Vector<CH>::Vector(other) { }
 		String(String&& other) noexcept : Vector<CH>::Vector(spd::move(other)) { }
@@ -44,7 +44,6 @@ namespace spd {
 
 		bool operator==(const String& other) const;
 #pragma endregion
-	ADD_CLASS_TAG
 	};
 
 	using StringA = typename String<char>;
@@ -106,7 +105,7 @@ inline void spd::String<CH>::Concat(const String& other) {
 	}
 
 	// add new data at end
-	for (auto it = other.BucketsBegin(); it != other.BucketsEnd(); it++) {
+	for (auto it = other.begin(); it != other.end(); it++) {
 		this->m_data[this->m_size++] = *it;
 	}
 }
