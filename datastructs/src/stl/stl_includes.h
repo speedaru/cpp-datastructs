@@ -91,6 +91,7 @@ namespace logging {
 
 	constexpr int SPACES_PER_INDENT = 2; // spaces per indentation level
 	inline int g_IndentLevel = 0; // Use thread-local if in multi-threaded user mode
+	inline bool g_pauseLog = false;
 
 	#define LOG_T(...) LogOutput(logging::LOG_TRACE, __RELATIVE_FILE__, __LINE__, __func__, __VA_ARGS__)
 	#define LOG_D(...) LogOutput(logging::LOG_DEBUG, __RELATIVE_FILE__, __LINE__, __func__, __VA_ARGS__)
@@ -103,18 +104,45 @@ namespace logging {
 	#define LOG_OBJ_D(fmt, ...) LOG_OBJ(logging::LOG_DEBUG, fmt, ##__VA_ARGS__)
 	#define LOG_OBJ_T(fmt, ...) LOG_OBJ(logging::LOG_DEBUG, fmt, ##__VA_ARGS__)
 
-	struct ScopedLog {
-		ScopedLog(const char* func) {
-			LOG_I(">> %s\n", func);
+	class ScopedLog {
+	public:
+		ScopedLog(const char* func) : m_func(func) {
+			LOG_I(">> %s\n", m_func);
 			g_IndentLevel++;
 		}
 		~ScopedLog() {
 			g_IndentLevel--;
-			LOG_I("<<\n");
+			LOG_I("<< %s\n", m_func);
 		}
+
+	private:
+		const char* m_func;
+	};
+
+	class ScopedPauseLog {
+	public:
+		ScopedPauseLog(bool* pauseLog) : m_pPauseLog(pauseLog), m_prevVal(false) {
+			if (m_pPauseLog) {
+				m_prevVal = *m_pPauseLog;
+				*m_pPauseLog = true;
+			}
+		}
+
+		~ScopedPauseLog() {
+			if (m_pPauseLog) {
+				*m_pPauseLog = m_prevVal;
+			}
+		}
+
+	private:
+		bool m_prevVal;
+		bool* m_pPauseLog;
 	};
 
 	#define LOG_SCOPE() logging::ScopedLog _scope(__func__)
+	#define LOG_PAUSE_SCOPED() logging::ScopedPauseLog _pauseLog(&logging::g_pauseLog)
+	#define LOG_PAUSE() logging::g_pauseLog = true
+	#define LOG_UNPAUSE() logging::g_pauseLog = false
 
 	// should always add at the end to not mess up access modifiers
 	#define ADD_CLASS_TAG				\

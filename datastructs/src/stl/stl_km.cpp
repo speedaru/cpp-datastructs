@@ -35,6 +35,11 @@ void logging::LogOutputRaw(const char* fmt, ...) {
 void logging::LogOutput(LogLevel level, const char* file, int line, const char* func, const char* fmt, ...) {
     const char* level_strings[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR" };
     
+    // dont log if logging paused
+    if (g_pauseLog) {
+        return;
+    }
+
     // time
     if constexpr (LOG_TIME) {
 		// get kernel system time
