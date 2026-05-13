@@ -47,7 +47,11 @@ namespace spd {
 		size_t Size() const	{ return m_size; }
 		size_t BucketCount() const { return m_bucketCount; }
 
+		// checks if map contains key
 		bool Contains(const K& key) const;
+
+		// checks if map contains VAL
+		bool ContainsVal(const V& val) const;
 
 		const V* Get(const K& key) const;
 		template <typename U>
@@ -67,6 +71,12 @@ namespace spd {
 #pragma region private_fn
 		void CopyImpl(const UnorderedMap& other);
 		void MoveImpl(UnorderedMap&& other);
+
+		iterator<Bucket> BucketsBegin() { return iterator<Bucket>(m_buckets); }
+		iterator<Bucket> BucketsEnd() { return iterator<Bucket>(m_buckets + m_bucketCount); }
+
+		const_iterator<Bucket> BucketsBegin() const { return const_iterator<Bucket>(m_buckets); }
+		const_iterator<Bucket> BucketsEnd() const { return const_iterator<Bucket>(m_buckets + m_bucketCount); }
 
 		// get bucket index
 		auto GetBucket(const K& key) const -> Bucket;
@@ -143,12 +153,25 @@ inline void spd::UnorderedMap<K, V, HashFn>::operator=(UnorderedMap&& other) {
 
 template<typename K, typename V, typename HashFn>
 inline bool spd::UnorderedMap<K, V, HashFn>::Contains(const K& key) const {
-	Node* current = GetBucket(key);
-	while (current) {
+	for (const Node* current = GetBucket(key); current != nullptr; current = current->next) {
 		if (current->key == key) {
 			return true;
 		}
-		current = current->next;
+	}
+
+	return false;
+}
+
+template<typename K, typename V, typename HashFn>
+inline bool spd::UnorderedMap<K, V, HashFn>::ContainsVal(const V& val) const {
+	// iterate buckets
+	for (auto it = BucketsBegin(); it < BucketsEnd(); it++) {
+		// iterate linked list in each bucket
+		for (const Node* current = *it; current != nullptr; current = current->next) {
+			if (current->value == val) {
+				return true;
+			}
+		}
 	}
 
 	return false;
@@ -220,8 +243,7 @@ inline void spd::UnorderedMap<K, V, HashFn>::DeleteKey(const K& key) {
 
 template<typename K, typename V, typename HashFn>
 inline void spd::UnorderedMap<K, V, HashFn>::Clear() {
-	spd::iterator<Bucket> end(m_buckets + m_bucketCount);
-	for (spd::iterator<Bucket> it(m_buckets); it != end; it++) {
+	for (auto it = BucketsBegin(); it < BucketsEnd(); it++) {
 		// delete linked list
 		Node* current = *it;
 		while (current) {

@@ -106,7 +106,7 @@ inline void spd::String<CH>::Concat(const String& other) {
 	}
 
 	// add new data at end
-	for (auto it = other.begin(); it != other.end(); it++) {
+	for (auto it = other.BucketsBegin(); it != other.BucketsEnd(); it++) {
 		this->m_data[this->m_size++] = *it;
 	}
 }

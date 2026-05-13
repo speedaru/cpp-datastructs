@@ -271,8 +271,8 @@ static void TestPushBackRange() {
 
 
 void spd::unit_test::PrintVector(const spd::Vector<TestClass>& vec) {
-	for (auto it = vec.begin(); it != vec.end(); ++it) {
-		if (it != vec.begin()) {
+	for (auto it = vec.BucketsBegin(); it != vec.BucketsEnd(); ++it) {
+		if (it != vec.BucketsBegin()) {
 			std::cout << ", ";
 		}
 		std::cout << (int)it->m_data;

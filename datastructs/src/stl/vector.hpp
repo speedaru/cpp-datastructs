@@ -75,11 +75,11 @@ namespace spd {
 		inline bool Empty() const { return !m_size; }
 #pragma endregion
 
-		auto begin() { return spd::iterator<T>(m_data); }
-		auto end() { return spd::iterator<T>(m_data + m_size); }
+		auto BucketsBegin() { return spd::iterator<T>(m_data); }
+		auto BucketsEnd() { return spd::iterator<T>(m_data + m_size); }
 
-		auto begin() const { return spd::const_iterator<T>(m_data); }
-		auto end() const { return spd::const_iterator<T>(m_data + m_size); }
+		auto BucketsBegin() const { return spd::const_iterator<T>(m_data); }
+		auto BucketsEnd() const { return spd::const_iterator<T>(m_data + m_size); }
 
 #pragma region operators
 		T& operator[](int idx) const {
@@ -532,19 +532,19 @@ inline void spd::Vector<T>::MoveElementsRightIfNeeded(size_t idx, size_t amount)
 	spd::iterator<T> writeSlot(lastSlot + amount);
 
 	// move elements into empty slots
-	for (spd::iterator<T> end(lastSlot - amount); readSlot > end; readSlot--) {
+	for (spd::iterator<T> BucketsEnd(lastSlot - amount); readSlot > BucketsEnd; readSlot--) {
 		new (writeSlot.Get()) T(spd::move_if_noexcept(*readSlot));
 		writeSlot--;
 	}
 
 	// now move elements into existing slots
-	for (spd::iterator<T> end(m_data + idx - 1); readSlot > end; readSlot--) {
+	for (spd::iterator<T> BucketsEnd(m_data + idx - 1); readSlot > BucketsEnd; readSlot--) {
 		*writeSlot = spd::move_if_noexcept(*readSlot);
 		writeSlot--;
 	}
 
 	// destory left over elements that were moved
-	for (spd::iterator<T> end(m_data + idx - 1); writeSlot > end; writeSlot--) {
+	for (spd::iterator<T> BucketsEnd(m_data + idx - 1); writeSlot > BucketsEnd; writeSlot--) {
 		writeSlot.Get()->~T();
 	}
 }

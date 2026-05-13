@@ -89,9 +89,9 @@ void logging::LogOutput(LogLevel level, const char* file, int line, const char* 
         *it++ = ' '; // add 1 extra space since only 4 chars instead of 5 for IFNO and WARN
     }
 
-	const char* end = it + (g_IndentLevel * SPACES_PER_INDENT); // indent level * spaces per indent
-    SPD_ASSERT(end < spacesBuff + sizeof(spacesBuff));
-    while (it < end) {
+	const char* BucketsEnd = it + (g_IndentLevel * SPACES_PER_INDENT); // indent level * spaces per indent
+    SPD_ASSERT(BucketsEnd < spacesBuff + sizeof(spacesBuff));
+    while (it < BucketsEnd) {
 		*it++ = ' ';
 	}
 

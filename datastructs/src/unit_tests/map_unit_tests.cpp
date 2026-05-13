@@ -11,6 +11,8 @@ using namespace spd::unit_test;
 //}
 
 #define PRINT_SEPARATOR logging::LogOutputRaw("--------------------------------------------------\n")
+#define PRINT_HEADER(header) LOG_I("----------" header "----------\n")
+
 #define MAP_PROLOGUE(bucketCount, tag) \
 	spd::UnorderedMap<K, V> map(bucketCount, tag); \
 	ResetConstructorsCount(); \
@@ -63,10 +65,44 @@ static void TestAssignmentOperators() {
     PRINT_SEPARATOR;
 }
 
+static void TestContains() {
+    MAP_PROLOGUE(2, "main map");
+
+	PRINT_HEADER("Testing Contains (key & val tests)");
+    TestClass v1(5);
+    TestClass v2(15);
+    TestClass v3(25);
+    int k1 = 1;
+    int k2 = 3;
+    int k3 = 7;
+
+	map.Set(k1, v1);
+	map.Set(k2, v2);
+	map.Set(k3, v3);
+
+	SPD_ASSERT(map.Contains(k1));
+	SPD_ASSERT(map.Contains(k2));
+	SPD_ASSERT(map.Contains(k3));
+
+	SPD_ASSERT(map.ContainsVal(v1));
+	SPD_ASSERT(map.ContainsVal(v2));
+	SPD_ASSERT(map.ContainsVal(v3));
+
+	SPD_ASSERT(*map.Get(k1) == v1 && map[k1] == v1);
+	SPD_ASSERT(*map.Get(k2) == v2 && map[k2] == v2);
+	SPD_ASSERT(*map.Get(k3) == v3 && map[k3] == v3);
+
+	LOG_I("passed contains tests\n");
+    PRINT_SEPARATOR;
+}
+
 void spd::unit_test::UnorderedMap() {
     LOG_I("-------------------- UNORDERED MAP TEST --------------------\n");
 
     TestAssignmentOperators();
+    PRINT_SEPARATOR;
+
+    TestContains();
     PRINT_SEPARATOR;
 
     //{

@@ -12,7 +12,7 @@ namespace spd {
 #pragma region constructors
 		StringView();
 		StringView(const CH* buff, size_t length);
-		StringView(const spd::const_iterator<CH>& start, const spd::const_iterator<CH>& end);
+		StringView(const spd::const_iterator<CH>& start, const spd::const_iterator<CH>& BucketsEnd);
 		StringView(const CH* cstr);
 #pragma endregion
 
@@ -26,11 +26,11 @@ namespace spd {
 		inline const CH* GetData() const { return m_data; }
 		inline size_t GetLength() const { return m_length; }
 
-		inline spd::iterator<CH> begin() { return spd::iterator<CH>(m_data); }
-		inline spd::iterator<CH> end() { return spd::iterator<CH>(m_data + m_length); }
+		inline spd::iterator<CH> BucketsBegin() { return spd::iterator<CH>(m_data); }
+		inline spd::iterator<CH> BucketsEnd() { return spd::iterator<CH>(m_data + m_length); }
 
-		inline spd::const_iterator<CH> begin() const { return spd::const_iterator<CH>(m_data); }
-		inline spd::const_iterator<CH> end() const { return spd::const_iterator<CH>(m_data + m_length); }
+		inline spd::const_iterator<CH> BucketsBegin() const { return spd::const_iterator<CH>(m_data); }
+		inline spd::const_iterator<CH> BucketsEnd() const { return spd::const_iterator<CH>(m_data + m_length); }
 #pragma endregion
 
 #pragma region operators
@@ -61,9 +61,9 @@ template<typename CH>
 inline spd::StringView<CH>::StringView(const CH* buff, size_t length) : m_data(buff), m_length(length) { }
 
 template<typename CH>
-inline spd::StringView<CH>::StringView(const spd::const_iterator<CH>& start, const spd::const_iterator<CH>& end) {
-	SPD_ASSERT(end >= start);
-	size_t length = end - start;
+inline spd::StringView<CH>::StringView(const spd::const_iterator<CH>& start, const spd::const_iterator<CH>& BucketsEnd) {
+	SPD_ASSERT(BucketsEnd >= start);
+	size_t length = BucketsEnd - start;
 	m_data = start;
 	m_length = length;
 }
