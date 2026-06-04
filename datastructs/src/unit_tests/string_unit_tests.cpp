@@ -9,7 +9,7 @@ void spd::unit_test::String() {
 		// test basic constructor
 		LOG_I("testing string constructor from c string\n");
 		const char cstr[] = "my string";
-		spd::String str(cstr);
+		spd::String str(cstr, "str");
 		SPD_ASSERT(str.Size() == sizeof(cstr) - 1);
 		spd::StringView strview1(str.Data(), str.Size());
 		LOG_D("spd::string : %.*s\n", SPD_FMT_SV(strview1));
@@ -20,7 +20,7 @@ void spd::unit_test::String() {
 		LOG_I("testing concact\n");
 		LOG_D("creating str2\n");
 		const char cstr2[] = "new string";
-		spd::String str2(cstr2);
+		spd::String str2(cstr2, "str2");
 		LOG_D("putting str2 after str\n");
 		str.Concat(str2);
 		strview1 = spd::StringView(str.Data(), str.Size());

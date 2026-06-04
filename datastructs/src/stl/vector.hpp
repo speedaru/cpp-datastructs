@@ -75,11 +75,11 @@ namespace spd {
 		inline bool Empty() const { return !m_size; }
 #pragma endregion
 
-		auto BucketsBegin() { return spd::iterator<T>(m_data); }
-		auto BucketsEnd() { return spd::iterator<T>(m_data + m_size); }
+		auto begin() { return spd::iterator<T>(m_data); }
+		auto end() { return spd::iterator<T>(m_data + m_size); }
 
-		auto BucketsBegin() const { return spd::const_iterator<T>(m_data); }
-		auto BucketsEnd() const { return spd::const_iterator<T>(m_data + m_size); }
+		auto begin() const { return spd::const_iterator<T>(m_data); }
+		auto end() const { return spd::const_iterator<T>(m_data + m_size); }
 
 #pragma region operators
 		T& operator[](int idx) const {
