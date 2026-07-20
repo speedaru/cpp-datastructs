@@ -23,6 +23,4 @@
 	#define SPD_ASSERT(cond) assert(cond)
 #endif
 
-// macros
-#define __RELATIVE_FILE__ (__FILE__ + sizeof(PROJECT_DIR "src\\") - 1)
 

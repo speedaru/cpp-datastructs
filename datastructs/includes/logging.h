@@ -1,5 +1,7 @@
 #pragma once
-#include "macros.h"
+#include <memory> // for va_list
+
+#define __RELATIVE_FILE__ (__FILE__ + sizeof(PROJECT_DIR "src\\") - 1)
 
 namespace logging {
 	enum class LogLevel {
