@@ -1,6 +1,7 @@
 #include "string_unit_tests.hpp"
-#include "stl/string.hpp"
-#include "stl/stl_includes.h"
+#include <string.hpp>
+#include <logging.h>
+#include <alloc.hpp>
 
 #define PRINT_SEPARATOR logging::LogOutputRaw("--------------------------------------------------\n\n")
 

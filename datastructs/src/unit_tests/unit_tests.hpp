@@ -1,5 +1,5 @@
 #pragma once
-#include <stl/stl_includes.h>
+#include <logging.h>
 
 namespace spd {
 	namespace unit_test {

@@ -1,8 +1,8 @@
 #include "unit_tests/map_unit_tests.hpp"
 #include "unit_tests/unit_tests.hpp"
-#include "stl/unordered_map.hpp"
-#include "stl/string.hpp"
-#include "stl/hash_str.hpp"
+#include <unordered_map.hpp>
+#include <string.hpp>
+#include <hash_str.hpp>
 
 using namespace spd::unit_test;
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "stl_includes.h"
 #include "types.hpp"
 #include "iterator.hpp"
 

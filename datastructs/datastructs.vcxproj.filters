@@ -18,16 +18,13 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\stl\stl_um.cpp">
+    <ClCompile Include="src\stl\logging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\unit_tests\vector_unit_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\unit_tests\map_unit_tests.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\stl\stl_km.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\stl\kernel_globals.cpp">
@@ -44,13 +41,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\stl\iterator.hpp">
+    <ClInclude Include="includes\iterator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\string_view.hpp">
+    <ClInclude Include="includes\string_view.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\vector.hpp">
+    <ClInclude Include="includes\vector.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\unit_tests\unit_tests.hpp">
@@ -59,34 +56,40 @@
     <ClInclude Include="src\unit_tests\vector_unit_tests.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\hash.hpp">
+    <ClInclude Include="includes\hash.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\unordered_map.hpp">
+    <ClInclude Include="includes\unordered_map.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\unit_tests\map_unit_tests.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\stl_includes.h">
+    <ClInclude Include="includes\macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\type_traits.hpp">
+    <ClInclude Include="includes\type_traits.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\types.hpp">
+    <ClInclude Include="includes\types.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\new.hpp">
+    <ClInclude Include="includes\new.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\string.hpp">
+    <ClInclude Include="includes\string.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\unit_tests\string_unit_tests.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\stl\hash_str.hpp">
+    <ClInclude Include="includes\hash_str.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\alloc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
